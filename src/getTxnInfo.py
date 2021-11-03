@@ -6,18 +6,7 @@ import eth_keys
 from pprint import pprint
 from web3 import Web3
 w3 = Web3()
-
-def print_usage():
-    print('Usage:\n{} /path/to/tx.json'.format(sys.argv[0]))
-
-if len(sys.argv) != 2:
-    print_usage()
-    raise Exception('Incorrect number of arguments')
-
-(_, tx_json_path) = sys.argv
-
-"""
-Format:
+format_example = """
 {
     "data" : "",
     "gasLimit" : "0x989680",
@@ -30,6 +19,18 @@ Format:
     "s" : "0x45de7595d2738a58caa0bf81c0af0efe37a882cca0eac8b7043373ed60a31fca"
 }
 """
+
+def print_usage():
+    print('Usage:\n{} /path/to/tx.json\n'.format(sys.argv[0]))
+    print('Json file format example:\n{}'.format(format_example))
+
+if len(sys.argv) != 2:
+    print_usage()
+    raise Exception('Incorrect number of arguments')
+
+(_, tx_json_path) = sys.argv
+
+
 tx = None
 with open(tx_json_path, 'r') as f:
     tx = json.load(f)
