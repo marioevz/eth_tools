@@ -19,6 +19,8 @@ if addr.startswith('0x'):
     addr = addr[2:]
 if nonce.startswith('0x'):
     nonce = nonce[2:]
+else:
+    nonce = hex(int(nonce))[2:]
 
 if (len(addr) % 2) != 0:
     addr = '0' + addr
@@ -27,6 +29,9 @@ if (len(nonce) % 2) != 0:
 
 addr = bytes.fromhex(addr)
 nonce = bytes.fromhex(nonce)
+
+if nonce == bytes.fromhex('00'):
+    nonce = ''
 
 kec = w3.keccak(hexstr=rlp.encode([addr, nonce]).hex())
 print(kec[12:].hex())
