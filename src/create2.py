@@ -23,7 +23,7 @@ if init_code.startswith('0x'):
 
 if (len(addr) % 2) != 0:
     addr = '0' + addr
-if (len(salt) % 2) != 0:
+while len(salt) < 64:
     salt = '0' + salt
 if (len(init_code) % 2) != 0:
     init_code = '0' + init_code
