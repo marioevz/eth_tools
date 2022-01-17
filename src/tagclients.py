@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+# Rename container ids in hive --docker.output to make it much more readable.
+import fileinput
+import re
+
+lines = [x for x in fileinput.input()]
+
+client_tags = ['⚫', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '🟤']
+sim_tags = ['⬜', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '🟫']
+client_start_matches = {
+    "Geth": r'\[([a-f0-9]{8})\] Supplied genesis state:',
+    "Neth": r'\[([a-f0-9]{8})\] Running Nethermind\.\.\.',
+}
+client_count = {}
+substitutions = []
+
+for l in lines:
+    matches = {k: re.match(client_start_matches[k], l) for k in client_start_matches}
+    if any(matches.values()):
+        m = next((k, matches[k]) for k in matches if matches[k] is not None)
+        sub_text = m[1].group(1)
+        client = m[0]
+        
+        if client in client_count:
+            client_index = client_count[client]
+            client_count[client] += 1
+        else:
+            client_index = 0
+            client_count[client] = 1
+
+        if not substitutions:
+            emoji = client_tags.pop(0)
+        else:
+            emoji = client_tags[len(substitutions) % len(client_tags)]
+
+        client_str = f"{client:<6} {client_index:02d} {emoji}"
+        substitutions.append((sub_text, client_str))
+
+for i, l in enumerate(lines):
+    for s in substitutions:
+        if s[0] in l:
+            lines[i] = l.replace(s[0], s[1])
+
+substitutions = []
+
+# Remaining is the simulator
+for l in lines:
+    m =  re.match(r'\[([a-f0-9]{8})\]', l)
+    if m:
+        sub_text = m.group(1)
+        if not sub_text in [x[0] for x in substitutions]:
+            emoji = sim_tags[len(substitutions) % len(sim_tags)]
+            client_str = f"{'Sim':<6} {len(substitutions):02d} {emoji}"
+            substitutions.append((sub_text, client_str))
+
+for l in lines:
+    for s in substitutions:
+        if s[0] in l:
+            l = l.replace(s[0], s[1])
+    print(l, end='')
