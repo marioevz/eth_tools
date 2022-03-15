@@ -3,8 +3,10 @@ import sys
 import json
 import rlp
 import eth_keys
+import struct
 from pprint import pprint
 from web3 import Web3
+from trie import HexaryTrie
 w3 = Web3()
 format_example = """
 {
@@ -47,9 +49,12 @@ with open(block_json_path, 'r') as f:
 
 def format_value_for_rlp(k, v):
     if k == 'transactions':
-        if len(v) != 0:
-            raise Exception('multiple txns not supported yet')
-        v = bytes.fromhex(emptyTrieHash[2:])
+        t = HexaryTrie(db={})
+        for i, tx in enumerate(v):
+            id = rlp.encode(i)
+            txBytes = bytes.fromhex(tx[2:])
+            t.set(id, txBytes)
+        v = t.root_hash
     else:
         if type(v) is str:
             if v.startswith('0x'):
@@ -92,7 +97,7 @@ def get_block_rlp(block: dict) -> bytes:
                 k = kk
                 found = True
         if not found:
-            raise Exception('malformed block')
+            raise Exception("Required key not found: " + k)
         rlp_array.append(format_value_for_rlp(k, v))
     return rlp.encode(rlp_array)
 
