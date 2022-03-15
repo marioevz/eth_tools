@@ -8,8 +8,12 @@ lines = [x for x in fileinput.input()]
 client_tags = ['⚫', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '🟤']
 sim_tags = ['⬜', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '🟫']
 client_start_matches = {
-    "Geth": r'\[([a-f0-9]{8})\] Supplied genesis state:',
+    "Geth": r'\[([a-f0-9]{8})\] Running go-ethereum with flags .*',
     "Neth": r'\[([a-f0-9]{8})\] Running Nethermind\.\.\.',
+    "Erigon": r'\[([a-f0-9]{8})\] Running erigon with flags .*',
+    "Besu": r'\[([a-f0-9]{8})\] starting main client: /opt/besu/bin/besu',
+    "LH BN": r'\[([a-f0-9]{8})\] .* INFO Beacon chain initialized',
+    "LH VC": r'\[([a-f0-9]{8})\] .* INFO Starting validator client',
 }
 client_count = {}
 substitutions = []
@@ -20,7 +24,7 @@ for l in lines:
         m = next((k, matches[k]) for k in matches if matches[k] is not None)
         sub_text = m[1].group(1)
         client = m[0]
-        
+
         if client in client_count:
             client_index = client_count[client]
             client_count[client] += 1
