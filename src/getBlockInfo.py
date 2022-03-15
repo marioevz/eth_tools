@@ -85,7 +85,7 @@ def get_block_rlp(block: dict) -> bytes:
                 "gasUsed",
                 "timestamp",
                 "extraData",
-                "mixHash/random",
+                "mixHash/prevRandao",
                 "nonce",
                 "baseFeePerGas"
             ):
