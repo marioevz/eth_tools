@@ -12,8 +12,15 @@ client_start_matches = {
     "Neth": r'\[([a-f0-9]{8})\] Running Nethermind\.\.\.',
     "Erigon": r'\[([a-f0-9]{8})\] Running erigon with flags .*',
     "Besu": r'\[([a-f0-9]{8})\] starting main client: /opt/besu/bin/besu',
+    "EthJS": r'\[([a-f0-9]{8})\] Running ethereumjs with flags .*',
     "LH BN": r'\[([a-f0-9]{8})\] .* INFO Beacon chain initialized',
     "LH VC": r'\[([a-f0-9]{8})\] .* INFO Starting validator client',
+    "Teku BN": r'\[([a-f0-9]{8})\] Starting Teku Beacon Node',
+    "Teku VC": r'\[([a-f0-9]{8})\] Starting Teku Validator Client',
+    "LS BN": r'\[([a-f0-9]{8})\] Starting Lodestar Beacon Node',
+    "LS VC": r'\[([a-f0-9]{8})\] Starting Lodestar Validator Client',
+    "Nimbus BN": r'\[([a-f0-9]{8})\] Starting Nimbus Beacon Node',
+    "Nimbus VC": r'\[([a-f0-9]{8})\] Starting Nimbus Validator Client',
 }
 client_count = {}
 substitutions = []
