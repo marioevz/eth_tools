@@ -11,7 +11,8 @@ fork_activation_blocks = {
     'Constantinople': 7280000,
     'MuirGlacier': 9200000,
     'London': 12965000,
-    'ArrowGlacier': 13773000
+    'ArrowGlacier': 13773000,
+    'GrayGlacier': 15050000
 }
 
 fork_pushback_block_count = {
@@ -20,7 +21,8 @@ fork_pushback_block_count = {
     'MuirGlacier': 9000000,
     'Berlin': 9000000,
     'London': 9700000,
-    'ArrowGlacier': 10700000
+    'ArrowGlacier': 10700000,
+    'GrayGlacier': 11400000
 }
 
 BLOCK_DIFF_FACTOR = 2048
