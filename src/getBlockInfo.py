@@ -55,7 +55,23 @@ def format_value_for_rlp(k, v):
             txBytes = bytes.fromhex(tx[2:])
             t.set(id, txBytes)
         v = t.root_hash
-    else:
+    elif k == 'withdrawals':
+        t = HexaryTrie(db={})
+        for id, withdrawal in enumerate(v):
+            fields = (
+                "index",
+                "validatorIndex",
+                "address",
+                "amount"
+            )
+            rlp_array = []
+            for field in fields:
+                if field not in withdrawal:
+                    raise Exception("Required withdrawal key not found: " + field)
+                rlp_array.append(format_value_for_rlp(field, withdrawal[field]))
+            t.set(rlp.encode(id), rlp.encode(rlp_array))
+        v = t.root_hash
+    elif k == 'extraData':
         if type(v) is str:
             if v.startswith('0x'):
                 v = v[2:]
@@ -66,29 +82,49 @@ def format_value_for_rlp(k, v):
                 except Exception as ex:
                     print(v)
                     raise ex
+    else:
+        if type(v) is str:
+            if v.startswith('0x'):
+                v = v[2:]
+                if (len(v) % 2) != 0:
+                    v = '0' + v
+                if v == '00':
+                    v = ''
+                try:
+                    v = bytes.fromhex(v)
+                except Exception as ex:
+                    print(v)
+                    raise ex
+        else:
+            raise Exception("invalid type for key: {}".format(k))
     return v
 
-def get_block_rlp(block: dict) -> bytes:
+def get_header_rlp_array(block: dict) -> list:
     rlp_array = []
 
-    for k in (
+    required_fields = (
                 "parentHash",
-                "ommersHash/sha3Uncles",
-                "coinbase/miner",
+                "ommers/ommersHash/sha3Uncles/uncleHash",
+                "coinbase/miner/feeRecipient",
                 "stateRoot",
-                "transactions",
-                "receiptRoot",
-                "logsBloom",
+                "transactions/transactionsTrie/transactionsRoot",
+                "receiptRoot/receiptsRoot/receiptTrie",
+                "bloom/logsBloom",
                 "difficulty",
-                "blockNumber",
+                "blockNumber/number",
                 "gasLimit",
                 "gasUsed",
                 "timestamp",
                 "extraData",
                 "mixHash/prevRandao",
                 "nonce",
-                "baseFeePerGas"
-            ):
+            )
+    optional_fields = (
+        "baseFeePerGas",
+        "withdrawals/withdrawalsRoot",
+    )
+
+    for k in required_fields:
         v = None
         found = False
         for kk in k.split('/'):
@@ -99,14 +135,70 @@ def get_block_rlp(block: dict) -> bytes:
         if not found:
             raise Exception("Required key not found: " + k)
         rlp_array.append(format_value_for_rlp(k, v))
+
+    for k in optional_fields:
+        v = None
+        found = False
+        for kk in k.split('/'):
+            if kk in block:
+                v = block[kk]
+                k = kk
+                found = True
+        if not found:
+            continue
+        if v is not None:
+            rlp_array.append(format_value_for_rlp(k, v))
+
+    return rlp_array
+
+def get_header_rlp(block: dict) -> bytes:
+    return rlp.encode(get_header_rlp_array(block))
+
+def get_block_rlp(block: dict) -> bytes:
+    rlp_array = []
+    rlp_array.append(get_header_rlp_array(block))
+
+    txs_rlp_array = []
+    if "transactions" in block:
+        for t in block["transactions"]:
+            txs_rlp_array.append(format_value_for_rlp("transaction", t))
+    elif "transactionsTrie" in block:
+        if block["transactionsTrie"] != emptyTrieHash:
+            raise Exception("Cannot get the block rlp without the actual transactions")
+    rlp_array.append(txs_rlp_array)
+
+    ommers_rlp_array = []
+    if "ommmers" in block:
+        for om in block["ommmers"]:
+            ommers_rlp_array.append(format_value_for_rlp("ommer", om))
+    elif "ommersHash" in block:
+        if block["ommersHash"] != emptyOmmersHash:
+            raise Exception("Cannot get the block rlp without the actual ommers")
+    elif "sha3Uncles" in block:
+        if block["sha3Uncles"] != emptyOmmersHash:
+            raise Exception("Cannot get the block rlp without the actual ommers")
+    elif "uncleHash" in block:
+        if block["uncleHash"] != emptyOmmersHash:
+            raise Exception("Cannot get the block rlp without the actual ommers")
+    rlp_array.append(ommers_rlp_array)
+
     return rlp.encode(rlp_array)
 
+def can_get_block_rlp(block: dict) -> bool:
+    return (("transactions" in block or ("transactionsTrie" in block and block["transactionsTrie"] == emptyTrieHash)) and \
+            ("ommers" in block
+                or ("ommersHash" in block and block["ommersHash"] == emptyOmmersHash)
+                or ("sha3Uncles" in block and block["sha3Uncles"] == emptyOmmersHash)
+                or ("uncleHash" in block and block["uncleHash"] == emptyOmmersHash) ))
 def get_block_hash(block: dict) -> bytes:
-    rlp = get_block_rlp(block)
+    rlp = get_header_rlp(block)
     return w3.keccak(rlp)
 
 pprint(block)
 block_hash = get_block_hash(block)
+print('header rlp = ' + get_header_rlp(block).hex())
+if can_get_block_rlp(block):
+    print('block rlp = ' + get_block_rlp(block).hex())
 print('block hash = ' + block_hash.hex())
 if "blockHash" in block:
     if block_hash.hex() != block["blockHash"]:
