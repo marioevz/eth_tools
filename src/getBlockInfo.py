@@ -30,6 +30,7 @@ format_example = """
 }
 """
 
+
 def print_usage():
     print('Usage:\n{} /path/to/block.json\n'.format(sys.argv[0]))
     print('Json file format example:\n{}'.format(format_example))
@@ -46,6 +47,7 @@ emptyOmmersHash = "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d
 block = None
 with open(block_json_path, 'r') as f:
     block = json.load(f)
+
 
 def format_value_for_rlp(k, v):
     if k == 'transactions':
@@ -99,6 +101,7 @@ def format_value_for_rlp(k, v):
             raise Exception("invalid type for key: {}".format(k))
     return v
 
+
 def get_header_rlp_array(block: dict) -> list:
     rlp_array = []
 
@@ -122,6 +125,7 @@ def get_header_rlp_array(block: dict) -> list:
     optional_fields = (
         "baseFeePerGas",
         "withdrawals/withdrawalsRoot",
+        "excessDataGas",
     )
 
     for k in required_fields:
@@ -154,6 +158,7 @@ def get_header_rlp_array(block: dict) -> list:
 def get_header_rlp(block: dict) -> bytes:
     return rlp.encode(get_header_rlp_array(block))
 
+
 def get_block_rlp(block: dict) -> bytes:
     rlp_array = []
     rlp_array.append(get_header_rlp_array(block))
@@ -184,12 +189,15 @@ def get_block_rlp(block: dict) -> bytes:
 
     return rlp.encode(rlp_array)
 
+
 def can_get_block_rlp(block: dict) -> bool:
     return (("transactions" in block or ("transactionsTrie" in block and block["transactionsTrie"] == emptyTrieHash)) and \
             ("ommers" in block
                 or ("ommersHash" in block and block["ommersHash"] == emptyOmmersHash)
                 or ("sha3Uncles" in block and block["sha3Uncles"] == emptyOmmersHash)
                 or ("uncleHash" in block and block["uncleHash"] == emptyOmmersHash) ))
+
+
 def get_block_hash(block: dict) -> bytes:
     rlp = get_header_rlp(block)
     return w3.keccak(rlp)
@@ -200,8 +208,22 @@ print('header rlp = ' + get_header_rlp(block).hex())
 if can_get_block_rlp(block):
     print('block rlp = ' + get_block_rlp(block).hex())
 print('block hash = ' + block_hash.hex())
+expected_hash = None
 if "blockHash" in block:
-    if block_hash.hex() != block["blockHash"]:
-        print(f"Fail: Block hash is different than expected {block_hash.hex()} / {block['blockHash']}")
+    expected_hash = block["blockHash"]
+elif "hash" in block:
+    expected_hash = block["hash"]
+if expected_hash is not None:
+    if block_hash.hex() != expected_hash:
+        print(f"Fail: Block hash is different than expected {block_hash.hex()} / {expected_hash}")
     else:
         print("Block hash is ok")
+if "rlp" in block and can_get_block_rlp(block):
+    block_rlp = get_block_rlp(block)
+    expected_rlp: str = block["rlp"]
+    if expected_rlp.startswith("0x"):
+        expected_rlp = expected_rlp[2:]
+    if block_rlp.hex() != expected_rlp:
+        print(f"Fail: Block RLP is different than expected {block_rlp.hex()} / {expected_rlp}")
+    else:
+        print("Block RLP is ok")

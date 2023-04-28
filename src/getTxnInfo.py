@@ -30,13 +30,6 @@ if len(sys.argv) != 2:
     print_usage()
     raise Exception('Incorrect number of arguments')
 
-(_, tx_json_path) = sys.argv
-
-
-tx = None
-with open(tx_json_path, 'r') as f:
-    tx = json.load(f)
-
 def format_value_for_rlp(v):
     if type(v) is list:
         v = v[0]
@@ -94,6 +87,9 @@ def get_tx_rlp(tx: dict) -> bytes:
 
     return rlp.encode(rlp_array)
 
+def get_rlp_hash(rlp: bytes) -> bytes:
+    return w3.keccak(rlp)
+
 def get_tx_hash(tx: dict) -> bytes:
     rlp = get_tx_rlp(tx)
     print(rlp.hex())
@@ -125,8 +121,20 @@ def get_sender(tx: dict) -> bytes:
 def get_raw_txn_rlp(tx: dict) -> bytes:
     pass
 
-pprint(tx)
-print('msg hash = ' + get_msg_hash(tx).hex())
-print('tx hash = ' + get_tx_hash(tx).hex())
-print('sender = 0x' + get_sender(tx).hex())
-print('raw tx rlp = 0x' + get_tx_rlp(tx).hex())
+(_, tx_json_path) = sys.argv
+
+
+if tx_json_path[:2] == '0x':
+    rlp_hex = tx_json_path
+    rlp = bytes.fromhex(rlp_hex[2:])
+    print('tx hash = ' + get_rlp_hash(rlp).hex())
+else:
+    tx = None
+    with open(tx_json_path, 'r') as f:
+        tx = json.load(f)
+
+    pprint(tx)
+    print('msg hash = ' + get_msg_hash(tx).hex())
+    print('tx hash = ' + get_tx_hash(tx).hex())
+    print('sender = 0x' + get_sender(tx).hex())
+    print('raw tx rlp = 0x' + get_tx_rlp(tx).hex()) 
