@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 import sys
 
+
 def print_usage():
-    print('Usage:\n{} <calldata hex>'.format(sys.argv[0]))
+    print("Usage:\n{} <calldata hex>".format(sys.argv[0]))
     exit()
+
 
 if len(sys.argv) != 2:
     print_usage()
 
 (_, calldatahex) = sys.argv
 
-if calldatahex[:2] == '0x':
+if calldatahex[:2] == "0x":
     calldatahex = calldatahex[2:]
 
 Gtxdatazero = 4
