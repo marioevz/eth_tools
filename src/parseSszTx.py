@@ -1,11 +1,23 @@
 #!/usr/bin/env python
 import sys
 from eth2spec.utils.ssz.ssz_typing import (
-    uint8, uint64, uint256, Union, ByteList, Bytes20, Bytes32, Container, List)
+    uint8,
+    uint64,
+    uint256,
+    Union,
+    ByteList,
+    Bytes20,
+    Bytes32,
+    Container,
+    List,
+)
+from eth_keys.backends.native.ecdsa import ecdsa_raw_recover
+from eth_keys.datatypes import PublicKey
+from Crypto.Hash import keccak
 
 
 def print_usage():
-    print('Usage:\n{} <SSZ Transaction Hex>\n'.format(sys.argv[0]))
+    print("Usage:\n{} <SSZ Transaction Hex>\n".format(sys.argv[0]))
     exit()
 
 
@@ -18,6 +30,7 @@ MAX_VERSIONED_HASHES_LIST_SIZE = 1 << 24
 
 
 # Types
+
 
 class ECDSASignature(Container):
     v: uint8
@@ -49,19 +62,36 @@ class SignedType3Tx(Container):
     Signature: ECDSASignature
 
 
-if __name__ == '__main__':
+BLOB_TX_TYPE = bytes([3])
+
+if __name__ == "__main__":
     if len(sys.argv) != 2:
         print_usage()
 
     (_, ssz_hex) = sys.argv
 
-    if ssz_hex.startswith('0x'):
+    if ssz_hex.startswith("0x"):
         ssz_hex = ssz_hex[2:]
     ssz_bytes = bytes.fromhex(ssz_hex)
 
     if len(ssz_bytes) < 1:
-        raise Exception('Invalid SSZ length: empty')
+        raise Exception("Invalid SSZ length: empty")
 
     tx_type, ssz_bytes = ssz_bytes[0], ssz_bytes[1:]
+    tx = SignedType3Tx.decode_bytes(ssz_bytes)
+    print("Signed Transaction", tx)
 
-    print(SignedType3Tx.decode_bytes(ssz_bytes))
+    # This will change with https://eips.ethereum.org/EIPS/eip-6493
+    messageHash = keccak.new(
+        data=BLOB_TX_TYPE + tx.Message.encode_bytes(), digest_bits=256
+    ).digest()
+
+    print("Signing Message Hash", messageHash.hex())
+
+    pk = PublicKey(
+        ecdsa_raw_recover(
+            bytes(messageHash),
+            (int(tx.Signature.v), int(tx.Signature.r), int(tx.Signature.s)),
+        )
+    )
+    print("Recovered Address", "0x" + pk.to_canonical_address().hex())
