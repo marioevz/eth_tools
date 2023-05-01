@@ -65,7 +65,8 @@ class SignedType3Tx(Container):
 
 BLOB_TX_TYPE = bytes([3])
 
-if __name__ == "__main__":
+
+def main() -> None:
     if len(sys.argv) != 2:
         print_usage()
 

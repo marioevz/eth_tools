@@ -10,18 +10,18 @@ def print_usage():
     exit()
 
 
-if len(sys.argv) != 2:
-    print_usage()
+def main() -> None:
+    if len(sys.argv) != 2:
+        print_usage()
 
-(_, sk) = sys.argv
+    (_, sk) = sys.argv
 
+    if sk.startswith("0x"):
+        sk = sk[2:]
 
-if sk.startswith("0x"):
-    sk = sk[2:]
+    if (len(sk) % 2) != 0:
+        sk = "0" + sk
 
-if (len(sk) % 2) != 0:
-    sk = "0" + sk
-
-sk = bytes.fromhex(sk)
-pk = PublicKey(private_key_to_public_key(sk))
-print("0x" + pk.to_canonical_address().hex())
+    sk = bytes.fromhex(sk)
+    pk = PublicKey(private_key_to_public_key(sk))
+    print("0x" + pk.to_canonical_address().hex())
