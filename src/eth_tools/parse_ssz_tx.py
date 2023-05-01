@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 import sys
+
+from Crypto.Hash import keccak
 from eth2spec.utils.ssz.ssz_typing import (
-    uint8,
-    uint64,
-    uint256,
-    Union,
     ByteList,
     Bytes20,
     Bytes32,
     Container,
     List,
+    Union,
+    uint8,
+    uint64,
+    uint256,
 )
 from eth_keys.backends.native.ecdsa import ecdsa_raw_recover
 from eth_keys.datatypes import PublicKey
-from Crypto.Hash import keccak
 
 
 def print_usage():

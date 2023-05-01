@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import sys
-from eth_keys.datatypes import PublicKey
+
 from eth_keys.backends.native.ecdsa import ecdsa_raw_recover
+from eth_keys.datatypes import PublicKey
 
 
 def print_usage():

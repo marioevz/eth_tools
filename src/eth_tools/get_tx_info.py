@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-import sys
 import json
-import rlp
-from eth_keys.datatypes import PublicKey
-from eth_keys.backends.native.ecdsa import ecdsa_raw_recover, ecdsa_raw_sign
+import sys
 from pprint import pprint
 from typing import Tuple
+
+import rlp
 from Crypto.Hash import keccak
+from eth_keys.backends.native.ecdsa import ecdsa_raw_recover, ecdsa_raw_sign
+from eth_keys.datatypes import PublicKey
 
 
 def keccak_256(data: bytes) -> bytes:

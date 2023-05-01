@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-import sys
 import json
-import rlp
+import sys
 from pprint import pprint
-from trie import HexaryTrie
-from Crypto.Hash import keccak
 
+import rlp
+from Crypto.Hash import keccak
 
 format_example = """
 {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import sys
 import json
 import os
+import sys
 
 
 def print_usage():
