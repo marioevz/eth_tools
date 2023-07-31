@@ -121,8 +121,9 @@ def get_header_rlp_array(block: dict) -> list:
     optional_fields = (
         "baseFeePerGas",
         "withdrawals/withdrawalsRoot",
-        "dataGasUsed",
-        "excessDataGas",
+        "blobGasUsed",
+        "excessBlobGas",
+        "beaconRoot",
     )
 
     for k in required_fields:
