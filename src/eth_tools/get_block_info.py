@@ -123,7 +123,7 @@ def get_header_rlp_array(block: dict) -> list:
         "withdrawals/withdrawalsRoot",
         "blobGasUsed",
         "excessBlobGas",
-        "beaconRoot",
+        "parentBeaconBlockRoot",
     )
 
     for k in required_fields:
@@ -196,19 +196,12 @@ def can_get_block_rlp(block: dict) -> bool:
     return (
         "transactions" in block
         or (
-            "transactionsTrie" in block
-            and bytes_equal(block["transactionsTrie"], EMPTY_TRIE_HASH)
+            "transactionsTrie" in block and bytes_equal(block["transactionsTrie"], EMPTY_TRIE_HASH)
         )
     ) and (
         "ommers" in block
-        or (
-            "ommersHash" in block
-            and bytes_equal(block["ommersHash"], EMPTY_OMMERS_HASH)
-        )
-        or (
-            "sha3Uncles" in block
-            and bytes_equal(block["sha3Uncles"], EMPTY_OMMERS_HASH)
-        )
+        or ("ommersHash" in block and bytes_equal(block["ommersHash"], EMPTY_OMMERS_HASH))
+        or ("sha3Uncles" in block and bytes_equal(block["sha3Uncles"], EMPTY_OMMERS_HASH))
         or ("uncleHash" in block and bytes_equal(block["uncleHash"], EMPTY_OMMERS_HASH))
     )
 
